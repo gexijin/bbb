@@ -7,3 +7,5 @@ Hobby project by [Steven Ge](https://www.linkedin.com/in/steven-ge-ab016947/)
 
 Powered by Google Gemini Flash 2.0.
 
+Vibe coded by Google Gemini (mostly). Some final touches using ChatGPT-4o.
+
