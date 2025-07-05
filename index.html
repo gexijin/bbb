@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with the Big, Beautiful Bill</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        .chat-container {
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar for chat messages */
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-container::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Basic Markdown styling within chat bubbles */
+        .chat-content p {
+            margin-bottom: 0.5em; /* Space between paragraphs */
+        }
+        .chat-content ul, .chat-content ol {
+            list-style-position: inside;
+            margin-left: 1em;
+            margin-bottom: 0.5em;
+        }
+        .chat-content li {
+            margin-bottom: 0.2em;
+        }
+        .chat-content strong {
+            font-weight: bold;
+        }
+        .chat-content em {
+            font-style: italic;
+        }
+        #social-buttons {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen bg-gray-100 antialiased">
+
+<header id="page-header" class="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-4 shadow-lg transition-all duration-300">
+
+        <h1 class="text-2xl sm:text-3xl font-bold text-center leading-snug break-words">
+        Chatbot for the Big Beautiful Bill
+        </h1>
+        <p class="text-center text-sm mt-1 opacity-90">
+            Let AI read the <a href="https://www.congress.gov/bill/119th-congress/house-bill/1/text" class="text-blue-200 hover:text-blue-100 underline" target="_blank">One Big Beautiful Bill Act (H.R.1)</a> and answer your questions.
+        </p>
+    </header>
+
+    <main class="flex-1 overflow-hidden p-4 flex flex-col">
+        <div id="chat-messages" class="chat-container flex-1 overflow-y-auto bg-white rounded-lg shadow-inner p-4 space-y-4 mb-4 border border-gray-200">
+            </div>
+
+        <div id="loading-indicator" class="hidden fixed inset-0 flex items-center justify-center bg-white bg-opacity-60 z-50">
+            <div class="flex flex-col items-center space-y-4">
+                <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
+                <p class="text-lg font-medium text-gray-800">Thinking...</p>
+            </div>
+        </div>
+
+        <div class="flex p-4 bg-white border-t border-gray-200 shadow-lg rounded-t-lg">
+            <input type="text" id="user-input" placeholder="Ask a question about this bill or click on a groups below to see impact."
+                   class="flex-1 p-3 border border-gray-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                   disabled>
+            <button id="send-button"
+                    class="bg-blue-600 text-white px-6 py-3 rounded-r-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                Send
+            </button>
+        </div>
+
+        <div id="social-buttons" class="hidden overflow-x-auto whitespace-nowrap px-2 pt-2 pb-2 space-x-2">
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on low-income families?">Low-income</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-purple-500 text-white px-2 py-1 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on middle-class families?">Middle class</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on high-income families?">High-income</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-yellow-600 text-white px-2 py-1 rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on seniors and people with disabilities?">Seniors & disabilities</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-teal-500 text-white px-2 py-1 rounded-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on immigrants?">Immigrants</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-indigo-500 text-white px-2 py-1 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on military personnel and veterans?">Military personnel</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-orange-500 text-white px-2 py-1 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on farmers & rural communities?">Farmers</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-pink-600 text-white px-2 py-1 rounded-md hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on healthcare providers?">Healthcare providers</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-lime-600 text-white px-2 py-1 rounded-md hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-600 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on the environment?">Environment</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-amber-700 text-white px-2 py-1 rounded-md hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-700 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on Native Americans?">Native American</button>
+            <button class="quick-question-button inline-block shrink-0 text-xs  bg-blue-400 text-white px-2 py-1 rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors duration-200 ease-in-out shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-question="What are the impacts on student borrowers?">Student borrowers</button>
+        </div>
+    </main>
+
+    <script>
+        // Constants
+        const BILL_URL = "https://raw.githubusercontent.com/gexijin/bbb/refs/heads/main/bbb.txt";
+        const API_KEY = "";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const quickQuestionButtons = document.querySelectorAll('.quick-question-button'); // Select all buttons with this class
+
+        // State Variables
+        let billContent = "";
+        // chatHistory will store alternating user/model messages for context
+        let chatHistory = [];
+        let isBillLoaded = false;
+
+        /**
+         * Displays a message in the chat interface.
+         * @param {string} message - The text message to display.
+         * @param {'user' | 'model'} sender - The sender of the message ('user' or 'model').
+         * @param {boolean} isMarkdown - True if the message content is Markdown, false otherwise.
+         */
+        function displayMessage(message, sender, isMarkdown = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', sender === 'user' ? 'justify-end' : 'justify-start');
+
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add(
+                'p-3',
+                'rounded-xl',
+                'shadow-md',
+                'max-w-[95%]', // Changed max-w-md to max-w-[95%] for wider text
+                'chat-content', // Add a class for Markdown styling
+                sender === 'user' ? 'bg-blue-500' : 'bg-gray-200',
+                sender === 'user' ? 'text-white' : 'text-gray-800',
+                sender === 'user' ? 'rounded-br-none' : 'rounded-bl-none'
+            );
+
+            if (isMarkdown) {
+                contentDiv.innerHTML = marked.parse(message); // Render Markdown
+            } else {
+                contentDiv.innerHTML = message.replace(/\n/g, '<br>'); // Preserve newlines
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        }
+
+        /**
+         * Fetches the legislation bill content from the URL.
+         */
+        async function fetchBill() {
+            try {
+
+                const initialSummary = `Signed into law by President Trump on July 4, 2025, H.R.1. by the 119th Congress is a massive legislation with sweeping changes:
+* **TITLE I (Agriculture, Nutrition, and Forestry)** modifies and reauthorizes various agricultural programs related to nutrition, forestry, commodities, disaster assistance, and crop insurance, while also investing in rural America.
+* **TITLE II (Armed Services)** increases Department of Defense funding to improve the quality of life for military personnel, enhance shipbuilding and missile defense capabilities, and strengthen supply chain resiliency.
+* **TITLE III (Banking, Housing, and Urban Affairs)** sets a funding cap for the Bureau of Consumer Financial Protection, and rescinds funds for certain housing programs.
+* **TITLE IV (Commerce, Science, and Transportation)** focuses on improving Coast Guard readiness, implementing spectrum auctions, enhancing air traffic control, and supporting space missions, and reducing certain transfers.
+* **TITLE V (Energy and Natural Resources)** promotes oil and gas leasing, addresses mining regulations, manages Federal lands, and directs energy and water-related initiatives.
+* **TITLE VI (Environment and Public Works)** rescinds funding for various environmental programs related to clean vehicles, greenhouse gas reduction, and air pollution control.
+* **TITLE VII (Finance)** delivers permanent tax relief for middle-class families, incentivizes job creation, invests in families and communities, ends Green New Deal spending, enhances deduction and income tax credit guardrails, and reforms health-related taxes while increasing the debt limit and ending unemployment payments to jobless millionaires.
+* **TITLE VIII (Health, Education, Labor, and Pensions)** modifies provisions related to student financial assistance, including loan limits, repayment options, Pell Grants, and accountability measures, and establishes a Garden of Heroes.
+* **TITLE IX (Homeland Security and Governmental Affairs)** focuses on homeland security provisions related to border infrastructure and personnel, and governmental affairs provisions including FEHB improvements.
+* **TITLE X (The Judiciary)** addresses immigration and law enforcement matters, judiciary matters, and radiation exposure compensation matters by setting up fees and appropriating funding.`;
+
+                displayMessage(initialSummary, "model", true); // Display the summary as Markdown
+
+                const response = await fetch(BILL_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                billContent = await response.text();
+                isBillLoaded = true;
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                quickQuestionButtons.forEach(button => button.disabled = false); // Enable all quick question buttons
+                document.getElementById('social-buttons').classList.remove('hidden');
+                // Changed loaded message
+                displayMessage("Entire document loaded. Ask any questions or get summaries.", "model");
+
+                // Prime the chat history with the system instruction and the bill content
+                // This initial exchange sets the context for the model.
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: `You are a legal assistant that help people understand the Big Beautiful Bill, H.R.1 that signed into law on July 4, 2025 by President Donald Trump. Always cite the section number (e.g., "Sec. 101") from the document for your answers. If you cannot find the answer in the document, state that you cannot find any related information in the legislation. If a user asks totally irrelavant questions, just say that you are only allowed to answer questions about the H.R.1. Answer questions strictly based on this legislation.  This law is Present Trump's major domestic policy. Be politically neutral.  This chatbot was developed by Dr. Steven Ge, from Orditus LLC, an AI startup. The purpose is to just inform the public. Not for profit.` }]
+                });
+                chatHistory.push({
+                    role: "model",
+                    parts: [{ text: "Okay, I understand. Please provide the legislation document." }]
+                });
+                chatHistory.push({
+                    role: "user",
+                    parts: [{ text: `Here is the legislation document you need to answer questions from:\n\n${billContent}` }]
+                });
+                chatHistory.push({
+                    role: "model",
+                    parts: [{ text: `I have ingested the legislation document and am ready to answer your questions. Please ask away!` }]
+                });
+
+
+            } catch (error) {
+                console.error("Error fetching bill:", error);
+                displayMessage(`Error loading the legislation document: ${error.message}. Please try refreshing the page.`, "model");
+            }
+        }
+
+        /**
+         * Sends the user's message to the Gemini API and displays the response.
+         * @param {string} [messageOverride] - Optional message to send, if not using userInput.value.
+         */
+        async function sendMessage(messageOverride = null) {
+            const userMessageText = messageOverride || userInput.value.trim();
+            if (!userMessageText || !isBillLoaded) return;
+            document.getElementById('page-header').classList.add('hidden');
+            // Add user message to history and UI
+            chatHistory.push({ role: "user", parts: [{ text: userMessageText }] });
+            displayMessage(userMessageText, "user");
+            userInput.value = ""; // Clear input
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+
+            loadingIndicator.classList.remove('hidden'); // Show loading indicator
+            userInput.disabled = true;
+            sendButton.disabled = true;
+            quickQuestionButtons.forEach(button => button.disabled = true); // Disable all quick question buttons
+
+            try {
+                // The chatHistory already contains the initial system instruction and bill content.
+                // Subsequent user messages are simply appended.
+                const payload = {
+                    contents: chatHistory
+                };
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const botResponseText = result.candidates[0].content.parts[0].text;
+                    chatHistory.push({ role: "model", parts: [{ text: botResponseText }] });
+                    displayMessage(botResponseText, "model", true); // Pass true for isMarkdown
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    displayMessage("Error: Could not get a response from the chatbot. Please try again or rephrase your question.", "model");
+                }
+
+            } catch (error) {
+                console.error("Error communicating with Gemini API:", error);
+                displayMessage("Error: Failed to connect to the chatbot. Please check your network connection or try again later.", "model");
+            } finally {
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                quickQuestionButtons.forEach(button => button.disabled = false); // Enable all quick question buttons
+                userInput.focus(); // Focus input for next question
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Ensure scroll to bottom
+            }
+        }
+
+        // Event Listeners
+        sendButton.addEventListener('click', () => sendMessage()); // Call sendMessage without arguments for regular input
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Event listeners for all quick question buttons
+        quickQuestionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const question = button.dataset.question;
+                sendMessage(question);
+            });
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', fetchBill);
+    </script>
+    <div class="p-2 text-xs text-gray-500 text-left bg-gray-100 border-t border-gray-200">
+        AI summary can be wrong. Developed by <a href="https://www.linkedin.com/in/steven-ge-ab016947/" target="_blank" class="text-blue-600 hover:underline">Dr. Steven Ge</a>, <a href="https://www.orditus.com/" target="_blank" class="text-blue-600 hover:underline">Orditus LLC</a>, as a hobby project. <a href="https://github.com/gexijin/bbb" target="_blank" class="text-blue-600 hover:underline">Code</a>. Not legal advice. Nonpartisan.
+    </div>
+</body>
+</html>
